@@ -64,4 +64,33 @@ contract Escrow is Ownable {
 
         emit Withdrawn(payee, payment);
     }
+
+     /**
+     * @dev Withdraws a specific amount from a user's balance to the owner contract for bid placement.
+     * The withdrawn funds are sent to the owner (CacheManagerAutomation contract) to be used for bidding.
+     *
+     * WARNING: This function should only be called by the owner contract during bid placement.
+     * Make sure proper checks are in place before calling this function.
+     *
+     * @param depositor The address whose funds will be partially withdrawn for bidding
+     * @param amount The amount to withdraw for the bid
+     *
+     * Emits a {Withdrawn} event.
+     */
+    function withdrawForBid(
+        address depositor,
+        uint256 amount
+    ) public onlyOwner {
+        uint256 balance = _deposits[depositor];
+
+        if (amount > balance) {
+            revert('Amount exceeds balance');
+        }
+
+        _deposits[depositor] = balance - amount;
+
+        payable(owner()).sendValue(amount);
+
+        emit Withdrawn(depositor, amount);
+    }
 }
